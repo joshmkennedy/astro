@@ -160,6 +160,11 @@ export class DevToolbarAuditListWindow extends HTMLElement {
 				padding: 18px;
 			}
 
+			.header-right {
+				flex:1;
+				justify-content:flex-end;
+			}
+
 			header.category-header {
 				background: rgba(27, 30, 36, 1);
 				padding: 10px 16px;
@@ -180,6 +185,34 @@ export class DevToolbarAuditListWindow extends HTMLElement {
 				display: flex;
 				gap: 8px;
 				align-items: center;
+			}
+
+			#toggle-minimize-state {
+				background:transparent;
+				color:white;
+				border:1px solid rgba(52, 56, 65, 1);
+				border-radius:.187rem;
+				height:1.6rem;
+				margin-left:auto;
+			}
+
+			/*minimize state*/
+			:host:has(.audit-app-header[data-minimized]){
+				height:fit-content;
+				max-height:48px;
+				min-height:unset;
+			}
+
+			.audit-app-header[data-minimized] ~ :is(hr, #audit-list, button) {
+				display:none;
+			}
+
+			.audit-app-header[ data-minimized ] > section {
+				padding-block:8px;
+			}
+
+			.audit-app-header[data-minimized] h1 {
+				font-size: 16px;
 			}
 
 			ul,
@@ -299,10 +332,21 @@ export class DevToolbarAuditListWindow extends HTMLElement {
 	</div>
 </template>
 
-<header>
+<header class="audit-app-header" >
 	<section id="header-left">
 		<h1>Audit</h1>
 		<section id="audit-counts"></section>
+	</section>
+	<section class="header-right">
+		<button id="toggle-minimize-state" aria-controls="audit-list" type="button">
+		<span>
+			<svg viewBox="0 0 10 10" width="10" height="10">
+				<g class="caret">
+					<path stroke="currentColor" d="M0 4 L5 8, 10 4" fill="none"/>
+				</g>
+			</svg>
+			</span>
+		</button>
 	</section>
 </header>
 <hr />
@@ -310,7 +354,7 @@ export class DevToolbarAuditListWindow extends HTMLElement {
 	<astro-dev-toolbar-icon icon="arrow-left"></astro-dev-toolbar-icon>
 	Back to list
 </button>
-<div id="audit-list"></div>
+<div id="audit-list" aria-labelledby="toggle-minimize-state" role="region"></div>
 		`;
 
 		// Create badges
@@ -343,10 +387,29 @@ export class DevToolbarAuditListWindow extends HTMLElement {
 				}
 			});
 		}
+
+		const minimizeToggle = this.shadowRoot.getElementById('toggle-minimize-state')
+		if (minimizeToggle) {
+			minimizeToggle.addEventListener('click', (e: MouseEvent) => {
+				this.toggleMinimizeState(e.currentTarget as HTMLButtonElement)
+			})
+		}
 	}
 
 	connectedCallback() {
 		this.render();
+	}
+
+	toggleMinimizeState(el: HTMLButtonElement) {
+		const header = el.closest<HTMLElement>('.audit-app-header')
+		if(!header) return;
+		if (header.dataset?.minimized) {
+			el.setAttribute("aria-expanded","true")
+			header.removeAttribute('data-minimized')
+		} else {
+			el.setAttribute("aria-expanded", "false")
+			header.setAttribute('data-minimized', 'true')
+		}
 	}
 
 	updateAuditList() {
