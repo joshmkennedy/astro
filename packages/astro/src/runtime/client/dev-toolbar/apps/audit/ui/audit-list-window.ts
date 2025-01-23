@@ -130,6 +130,8 @@ export class DevToolbarAuditListWindow extends HTMLElement {
 			}
 
 			:host {
+				/*this needs be on top of highlights*/
+				z-index:3000000000;
 				left: initial;
 				top: 8px;
 				right: 8px;
